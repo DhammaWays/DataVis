@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Unemployement Chart</title>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.2.0.min.js"></script>
+  <style>
+    h3 {
+    text-align: center;
+    }
+  </style>
+</head>
+<body id="chartContainer" style="height: 95vh">
+  <script type="text/javascript">
+  var title = d3.select("body").append("h3")
+    .text("Total Unemployment (selected months from 2007 to 2010)");
+
+    var svg = dimple.newSvg("body", "90%", "90%");
+    var data = [
+      { "Month":"Dec-2007", "Unemployment":7000000 },
+      { "Month":"Sep-2008", "Unemployment":9000000 },
+      { "Month":"Mar-2009", "Unemployment":13500000 },
+      { "Month":"Jun-2010", "Unemployment":15000000 },
+    ];
+    var chart = new dimple.chart(svg, data);
+    chart.addTimeAxis("x", "Month", "%b-%Y", "%b-%Y");
+    var y = chart.addMeasureAxis("y", "Unemployment");
+    y.overrideMin = 6000000;
+    chart.addSeries(null, dimple.plot.scatter);
+    chart.addSeries(null, dimple.plot.line);
+    chart.draw();
+
+    window.onresize = function () {
+      chart.draw(0, true);
+    };
+  </script>
+</body>
+</html>
