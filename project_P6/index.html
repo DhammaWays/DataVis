@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Titanic Disaster: Survivor Demographics</title>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://dimplejs.org/dist/dimple.v2.2.0.min.js"></script>
+  <style>
+    h3 {
+    text-align: center;
+    }
+  </style>
+</head>
+<body id="chartContainer" style="height: 95vh">
+  <script type="text/javascript">
+
+    // Heading for our chart
+    var title = d3.select("body").append("h3")
+      .text("Titanic Disaster: Survivor Demographics");
+
+    // Create SVG containers to hold the charts
+    // Use % of width and height to make charts responsive (resize according to window size)
+    var svg1 = dimple.newSvg("body", "45%", "45%");
+    var svg2 = dimple.newSvg("body", "45%", "45%");
+    var svg3 = dimple.newSvg("body", "45%", "45%");
+    var svg4 = dimple.newSvg("body", "45%", "45%");
+
+    var chart1, chart2, chart3, chart4;
+    var data = [];
+
+    // Read the data and create charts
+    d3.csv("titanic_train.csv", function(data_in) {
+       // Add a new varaible "AgeGroup" indicating whether given passenger
+       // was an Adult (> 18 years) or Child. For the passengers not having the
+       // the data for their age, we club them in "Adult" category.
+       data = data_in.map(function(val) {
+         val.AgeGroup = ( val.Age != "" && val.Age <= 18 ? "Child" : "Adult");
+         return val; })
+
+       chart1 = draw_chart(data, svg1, "Survived");
+       chart2 = draw_chart(data, svg2, "Sex");
+       chart3 = draw_chart(data, svg3, "AgeGroup");
+       chart4 = draw_chart(data, svg4, "Pclass");
+      });
+
+    // Function to create and drawing a chart using dimple
+    // data - data array
+    // svg - svg container
+    // xVar - categorical variable from "data" to plot on x-Axis
+    function draw_chart(data, svg, xVar) {
+      var chart = new dimple.chart(svg, data);
+      chart.width = "70%";
+      chart.height = "70%";
+
+      var x = chart.addCategoryAxis("x", xVar);
+
+      // We are using "PassengerId" for y-axis to allow us to uniquely
+      // count number of passengers and not for their Id itself!
+      var y = chart.addMeasureAxis("y", "PassengerId");
+      y.title = "Passengers"
+
+      // Draw stacked column bar grouped by count of survival status
+      var mySeries = chart.addSeries(["Survived"], dimple.plot.bar);
+      mySeries.aggregate = dimple.aggregateMethod.count;
+
+      // Assign color blind friendly colors for red and green
+      chart.assignColor("0", "#e34234"); // vermilion
+      chart.assignColor("1", "rgb(0,158,115)"); // bluish green
+
+      // Draw a legend for color coding of surivial status
+      var legend = chart.addLegend("78.5%", "7%", "10%", "20%", "right");
+      svg.selectAll("title_text")
+                .data(["Survived (1:Yes, 0:No)"])
+                .enter()
+                .append("text")
+                .attr("x", "80%")
+                .attr("y", "5%")
+                .style("font-size", "8px")
+                .text(function (d) { return d; });
+
+
+      //chart.setStoryboard(["Survived"]);
+
+      chart.draw();
+      return chart;
+    }
+
+    // After resize of browser window, do a fast redraw without worrying of data change
+    window.onresize = function () {
+      chart1.draw(0, true);
+      chart2.draw(0, true);
+      chart3.draw(0, true);
+      chart4.draw(0, true);
+    };
+  </script>
+</body>
+</html>

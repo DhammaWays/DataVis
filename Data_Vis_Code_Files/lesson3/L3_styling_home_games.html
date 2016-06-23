@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://dimplejs.org/dist/dimple.v2.0.0.min.js"></script>
-    
+
     <style>
       h2 {
         color: black;
@@ -41,7 +41,7 @@
 
     <script type="text/javascript">
       function draw(data) {
-      
+
       /*
         D3.js setup code
       */
@@ -124,8 +124,12 @@
             .attr("cy", function(d) {
                 return count_scale(d["attendance"]);
             })
-            .attr("r", radius)
-            .attr("fill", color);
+            .attr("r", function(d) {
+              return((d.team1 == d.home || d.team2 == d.home) ? 5 : radius);
+            })
+            .attr("fill", function(d) {
+              return((d.team1 == d.home || d.team2 == d.home) ? "red" : color);
+            });
         };
 
     </script>
