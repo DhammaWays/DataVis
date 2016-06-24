@@ -9,6 +9,34 @@
     h3 {
     text-align: center;
     }
+
+    div.categories_buttons {
+      position: fixed;
+      top: 15%;
+      left: 60%;
+      //background-color: rgb(251, 201, 127);
+      padding: 3px;
+      margin: 7px;
+      // border: 1px solid black;
+      // border-radius: 10px;
+    }
+
+    div.indiv_btn {
+      background-color: rgb(251, 201, 127);
+      border: 1px solid black;
+      border-radius: 5px;
+      font-size: small;
+    }
+
+    div.count_percentage_buttons {
+      position: fixed;
+      top: 30%;
+      left: 60%;
+      //background-color: rgb(251, 201, 127);
+      padding: 3px;
+      margin: 7px;
+    }
+
   </style>
 </head>
 <body id="chartContainer" style="height: 95vh">
@@ -20,10 +48,10 @@
 
     // Create SVG containers to hold the charts
     // Use % of width and height to make charts responsive (resize according to window size)
-    var svg1 = dimple.newSvg("body", "45%", "45%");
-    var svg2 = dimple.newSvg("body", "45%", "45%");
-    var svg3 = dimple.newSvg("body", "45%", "45%");
-    var svg4 = dimple.newSvg("body", "45%", "45%");
+    var svg1 = dimple.newSvg("body", "60%", "60%");
+    //var svg2 = dimple.newSvg("body", "45%", "45%");
+    //var svg3 = dimple.newSvg("body", "45%", "45%");
+    //var svg4 = dimple.newSvg("body", "45%", "45%");
 
     var chart1, chart2, chart3, chart4;
     var data = [];
@@ -37,17 +65,19 @@
          val.AgeGroup = ( val.Age != "" && val.Age <= 18 ? "Child" : "Adult");
          return val; })
 
-       chart1 = draw_chart(data, svg1, "Survived");
-       chart2 = draw_chart(data, svg2, "Sex");
-       chart3 = draw_chart(data, svg3, "AgeGroup");
-       chart4 = draw_chart(data, svg4, "Pclass");
+       chart1 = draw_chart(data, svg1, "Sex", "Count");
+       //chart1 = draw_chart(data, svg1, "Survived");
+       //chart2 = draw_chart(data, svg2, "Sex");
+       //chart3 = draw_chart(data, svg3, "AgeGroup");
+       //chart4 = draw_chart(data, svg4, "Pclass");
       });
 
     // Function to create and drawing a chart using dimple
     // data - data array
     // svg - svg container
     // xVar - categorical variable from "data" to plot on x-Axis
-    function draw_chart(data, svg, xVar) {
+    // CountOrPercentage - "Count" or "Percentage"
+    function draw_chart(data, svg, xVar, CountOrPercentage) {
       var chart = new dimple.chart(svg, data);
       chart.width = "70%";
       chart.height = "70%";
@@ -56,8 +86,14 @@
 
       // We are using "PassengerId" for y-axis to allow us to uniquely
       // count number of passengers and not for their Id itself!
-      var y = chart.addMeasureAxis("y", "PassengerId");
-      y.title = "Passengers"
+      if( CountOrPercentage == "Count" ) {
+        var y = chart.addMeasureAxis("y", "PassengerId");
+        y.title = "Number of Passengers";
+      }
+      else {
+        var y = chart.addPctAxis("y", "PassengerId");
+        y.title = "Percentage of Passengers";
+      }
 
       // Draw stacked column bar grouped by count of survival status
       var mySeries = chart.addSeries(["Survived"], dimple.plot.bar);
@@ -88,10 +124,78 @@
     // After resize of browser window, do a fast redraw without worrying of data change
     window.onresize = function () {
       chart1.draw(0, true);
-      chart2.draw(0, true);
-      chart3.draw(0, true);
-      chart4.draw(0, true);
+      //chart2.draw(0, true);
+      //chart3.draw(0, true);
+      //chart4.draw(0, true);
     };
+
+    var categories = [ "Sex", "AgeGroup", "Pclass" ];
+    var current_category = "Sex";
+    var current_count_percentage = "Count";
+
+    var cat_buttons = d3.select("body")
+            .append("div")
+            .attr("class", "categories_buttons")
+            .selectAll("div")
+            .data(categories)
+            .enter()
+            .append("div")
+            .attr("class", "indiv_btn")
+            .text(function(d) {
+                return d;
+            });
+
+    cat_buttons.on("click", function(d) {
+        d3.select(".categories_buttons")
+          .selectAll("div")
+          .transition()
+          .duration(500)
+          .style("color", "black")
+          .style("background", "rgb(251, 201, 127)");
+
+        d3.select(this)
+          .transition()
+          .duration(500)
+          .style("background", "lightBlue")
+          .style("color", "white");
+
+        svg1.selectAll("*").remove();
+        chart1 = draw_chart(data, svg1, d, current_count_percentage);
+        current_category = d;
+    });
+
+    var count_percentage = [ "Count", "Percentage" ];
+    var count_buttons = d3.select("body")
+            .append("div")
+            .attr("class", "count_percentage_buttons")
+            .selectAll("div")
+            .data(count_percentage)
+            .enter()
+            .append("div")
+            .attr("class", "indiv_btn")
+            .text(function(d) {
+                return d;
+            });
+
+    count_buttons.on("click", function(d) {
+        d3.select(".count_percentage_buttons")
+          .selectAll("div")
+          .transition()
+          .duration(500)
+          .style("color", "black")
+          .style("background", "rgb(251, 201, 127)");
+
+        d3.select(this)
+          .transition()
+          .duration(500)
+          .style("background", "lightBlue")
+          .style("color", "white");
+
+        svg1.selectAll("*").remove();
+        chart1 = draw_chart(data, svg1, current_category, d);
+        current_count_percentage = d;
+    });
+
   </script>
 </body>
 </html>
