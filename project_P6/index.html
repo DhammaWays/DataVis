@@ -9,7 +9,7 @@
     h3 {
     text-align: center;
     line-height: 0px;
-    width: 70%;
+    width: 90%;
     }
 
     svg {
@@ -18,8 +18,8 @@
 
     div.categories_buttons {
       position: fixed;
-      top: 15%;
-      left: 65%;
+      top: 30%;
+      left: 85%;
       padding: 3px;
       margin: 7px;
     }
@@ -36,8 +36,8 @@
 
     div.count_percentage_buttons {
       position: fixed;
-      top: 30%;
-      left: 65%;
+      top: 50%;
+      left: 85%;
       padding: 3px;
       margin: 7px;
     }
@@ -54,18 +54,25 @@
 
     // Create SVG containers to hold the charts
     // Use % of width and height to make charts responsive (resize according to window size)
-    var svg1 = dimple.newSvg("body", "60%", "60%");
+    var svg1 = dimple.newSvg("body", "80%", "80%");
 
     var chart1;
     var data = [];
+    var nMiliSec_Transition = 500;
 
     // Read the data and create charts
     d3.csv("titanic_train.csv", function(data_in) {
-       // Add a new varaible "AgeGroup" indicating whether given passenger
+       // Postprocess data table
+       // a) Add a new varaible "AgeGroup" indicating whether given passenger
        // was an Adult (> 18 years) or Child. For the passengers not having the
        // the data for their age, we club them in "Adult" category.
+       // b) Rename Survived field values from (01,1) to (Died, Survived)
+       // c) Rename "PassengerId" to "Passengers" as we are using it for count purpose
        data = data_in.map(function(val) {
          val.AgeGroup = ( val.Age != "" && val.Age < 18 ? "Child (Age < 18)" : "Adult");
+         val.Survived = ( val.Survived != "" && val.Survived == 1 ? "Survived" : "Died");
+         val.Passengers = val.PassengerId;
+         delete val.PassengerId;
          return val; })
 
        chart1 = draw_chart(data, svg1, "Sex", "Sex", "Count");
@@ -85,14 +92,14 @@
       var x = chart.addCategoryAxis("x", xVar);
       x.title = xLabel;
 
-      // We are using "PassengerId" for y-axis to allow us to uniquely
-      // count number of passengers and not for their Id itself!
+      // We are using "Passengers" for y-axis to allow us to uniquely
+      // count number of passengers and not for their id itself!
       if( CountOrPercentage == "Count" ) {
-        var y = chart.addMeasureAxis("y", "PassengerId");
+        var y = chart.addMeasureAxis("y", "Passengers");
         y.title = "Number of Passengers";
       }
       else {
-        var y = chart.addPctAxis("y", "PassengerId");
+        var y = chart.addPctAxis("y", "Passengers");
         y.title = "Percentage of Passengers";
       }
 
@@ -105,19 +112,19 @@
       //chart.assignColor("1", "rgb(0,158,115)"); // bluish green
 
       // Assign balanced natural colors as per rules for using colors
-      chart.assignColor("0", "rgb(205,112,88)"); // moderate red
-      chart.assignColor("1", "rgb(121,195,106)"); // lime green
+      chart.assignColor("Died", "rgb(205,112,88)"); // moderate red
+      chart.assignColor("Survived", "rgb(121,195,106)"); // lime green
 
       // Draw a legend for color coding of surivial status
-      var legend = chart.addLegend("78.5%", "7%", "10%", "20%", "right");
+      var legend = chart.addLegend("88%", "6%", "10%", "20%", "right");
 
-      chart.draw();
-      update_legend_text();
+      chart.draw(nMiliSec_Transition);
+      //update_legend_text();
 
       return chart;
     }
 
-    // Update the legend text to more readable label then default 0 or 1
+    // Update the legend text to more readable label then default
     function update_legend_text() {
       d3.select(".dimple-0 .dimple-legend-text").text("Died");
       d3.select(".dimple-1 .dimple-legend-text").text("Survived");
@@ -199,8 +206,8 @@
 
     // After resize of browser window, do a fast redraw without worrying of data change
     window.onresize = function () {
-      chart1.draw(0, true);
-      update_legend_text();
+      chart1.draw(nMiliSec_Transition, true);
+      //update_legend_text();
     };
 
   </script>
