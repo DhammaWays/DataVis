@@ -130,7 +130,6 @@ I iterated further based on above feedback from second iteration. Following are 
 - Updated button and axis labels for *Pclass* to convey info better (e.g. Used First Class for 1, and so on)
 - Increased the size of main chart and improved the spacing between different elements of the layout.
 - Added animation for nicer transition between different graphs.
-- Used more balanced natural colors.
 
 ### Final Visualization
 
