@@ -53,13 +53,12 @@
       .text("(Women, Children and Rich survived better!)");
 
     // Create SVG containers to hold the charts
-    // Use % of width and height to make charts responsive (resize according to
-    // window size)
+    // Use % of width and height to make charts responsive (resize according to window size)
     var svg1 = dimple.newSvg("body", "80%", "80%");
 
     var chart1;
     var data = [];
-    var MILISEC_TRANSITION = 500; // To create animation effect via transition
+    var nMiliSec_Transition = 500;
 
     // Read the data and create charts
     d3.csv("titanic_train.csv", function(data_in) {
@@ -68,24 +67,15 @@
        // was an Adult (> 18 years) or Child. For the passengers not having the
        // the data for their age, we club them in "Adult" category.
        // b) Rename Survived field values from (0,1) to (Died, Survived)
-       // c) Rename Pclass field value from (1,2,3) to (First, Second, Third)
-       // d) Rename "PassengerId" to "Passengers" as we are using it for
-       //    count purpose
+       // c) Rename "PassengerId" to "Passengers" as we are using it for count purpose
        data = data_in.map(function(val) {
-         val.AgeGroup = ( val.Age != "" && val.Age < 18 ?
-                            "Child (Age < 18)" : "Adult");
-         val.Survived = ( val.Survived != "" && val.Survived == 1 ?
-                            "Survived" : "Died");
-         val.Pclass = ( val.Pclass != "" && val.Pclass == 1 ?
-                          "First Class" : (val.Pclass == 2 ?
-                                            "Second Class" : "Third Class") );
-         val.CabinClass = val.Pclass;
-         delete val.Pclass;
+         val.AgeGroup = ( val.Age != "" && val.Age < 18 ? "Child (Age < 18)" : "Adult");
+         val.Survived = ( val.Survived != "" && val.Survived == 1 ? "Survived" : "Died");
          val.Passengers = val.PassengerId;
          delete val.PassengerId;
          return val; })
 
-       chart1 = drawChart(data, svg1, "Sex", "Sex", "Count");
+       chart1 = draw_chart(data, svg1, "Sex", "Sex", "Count");
       });
 
     // Function to create and drawing a chart using dimple
@@ -94,15 +84,13 @@
     // xVar - categorical variable from "data" to plot on x-Axis
     // xLabel - label text for for x-Axis
     // CountOrPercentage - "Count" or "Percentage"
-    function drawChart(data, svg, xVar, xLabel, CountOrPercentage) {
+    function draw_chart(data, svg, xVar, xLabel, CountOrPercentage) {
       var chart = new dimple.chart(svg, data);
       chart.width = "70%";
       chart.height = "70%";
 
       var x = chart.addCategoryAxis("x", xVar);
       x.title = xLabel;
-      if( xVar == "CabinClass")
-        x.addOrderRule(["First Class", "Second Class", "Third Class"]);
 
       // We are using "Passengers" for y-axis to allow us to uniquely
       // count number of passengers and not for their id itself!
@@ -119,6 +107,10 @@
       var mySeries = chart.addSeries(["Survived"], dimple.plot.bar);
       mySeries.aggregate = dimple.aggregateMethod.count;
 
+      //Assign color blind friendly colors for red and green
+      //chart.assignColor("0", "rgb(204,121,167)"); // reddish purple
+      //chart.assignColor("1", "rgb(0,158,115)"); // bluish green
+
       // Assign balanced natural colors as per rules for using colors
       chart.assignColor("Died", "rgb(205,112,88)"); // moderate red
       chart.assignColor("Survived", "rgb(121,195,106)"); // lime green
@@ -126,18 +118,24 @@
       // Draw a legend for color coding of surivial status
       var legend = chart.addLegend("88%", "6%", "10%", "20%", "right");
 
-      chart.draw(MILISEC_TRANSITION);
+      chart.draw(nMiliSec_Transition);
+      //update_legend_text();
 
       return chart;
     }
 
+    // Update the legend text to more readable label then default
+    function update_legend_text() {
+      d3.select(".dimple-0 .dimple-legend-text").text("Died");
+      d3.select(".dimple-1 .dimple-legend-text").text("Survived");
+    }
+
     // Interactive selection for chart
     // -Across different categories
-    // -Display as actual count or percentage
+    // -Display as actual count or Percentage
 
-    var categories = [ "Sex", "AgeGroup", "CabinClass" ];
-    var categories_labels = {"Sex": "Sex", "AgeGroup": "Age Group",
-                             "CabinClass": "Passenger Cabin Class" };
+    var categories = [ "Sex", "AgeGroup", "Pclass" ];
+    var categories_labels = {"Sex": "Sex", "AgeGroup": "Age Group", "Pclass": "Passenger Cabin Class" };
     var current_category = "Sex";
     var current_count_percentage = "Count";
 
@@ -167,11 +165,9 @@
           .style("background", "lightBlue")
           .style("color", "white");
 
-        // Based on interactive selection draw new chart after removing
-        // previous one
+        // Based on interactive selection draw new chart after removing previous one
         svg1.selectAll("*").remove();
-        chart1 = drawChart(data, svg1, d, categories_labels[d],
-                           current_count_percentage);
+        chart1 = draw_chart(data, svg1, d, categories_labels[d] ,current_count_percentage);
         current_category = d;
     });
 
@@ -202,18 +198,16 @@
           .style("background", "lightBlue")
           .style("color", "white");
 
-        // Based on interactive selection draw new chart after removing
-        // previous one
+        // Based on interactive selection draw new chart after removing previous one
         svg1.selectAll("*").remove();
-        chart1 = drawChart(data, svg1, current_category,
-                           categories_labels[current_category], d);
+        chart1 = draw_chart(data, svg1, current_category, categories_labels[current_category], d);
         current_count_percentage = d;
     });
 
-    // After resize of browser window, do a fast redraw without worrying
-    // about data change
+    // After resize of browser window, do a fast redraw without worrying of data change
     window.onresize = function () {
-      chart1.draw(MILISEC_TRANSITION, true);
+      chart1.draw(nMiliSec_Transition, true);
+      //update_legend_text();
     };
 
   </script>
